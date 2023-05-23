@@ -273,15 +273,38 @@ In einigen Fällen will man in eine Datei schreiben oder aus einer Datei lesen. 
 <li>Wenn wir uns die Daten wieder holen wollen, referenzieren wir einfach den entsprechend Key im Array. 
 </ul>
 
-Vorteile von Key-Value Datenbanken:
+## Vorteile von Key-Value Datenbanken:
 <ul>
 <li> Effiziente Nutzung des Speichers, da die Daten in einer einfachen Datenstruktur hinterlegt sind.
 <li> Performanter Zugriff auf die Daten unabhängig von ihrere Größe, da ein Zugriff auf eine HashTables O(1) ist.
 </ul>
 
-Nachteile:
+## Nachteile:
 <ul>
-<li> Der Zugriff erfolgt lediglich über den Key, sämtliche hinterlegte Daten werden beim Zugriff geholt.
-<li> Komplexere Datenstrukturen können hier zudem nur schwer modelliert werden.
+<li> Nur primitive Datentypen können für die Speicherung verwendet werden (boolean, string, integer, etc.)
+<li> Sie sind nicht dafür gedacht, große Datenmenge zu speichern.
 </ul>
-   
+
+## Daten speichern
+```
+// obtain shared preferences
+final prefs = await SharedPreferences.getInstance();
+
+// set value
+await prefs.setInt('counter', counter);
+```
+
+## Daten lesen
+```
+final prefs = await SharedPreferences.getInstance();
+
+// Try reading data from the counter key. If it doesn't exist, return 0.
+final counter = prefs.getInt('counter') ?? 0;
+```
+
+## Daten löschen
+```
+final prefs = await SharedPreferences.getInstance();
+
+await prefs.remove('counter');
+```
