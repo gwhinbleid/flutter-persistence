@@ -265,3 +265,23 @@ Future<void> deleteAnime(int id) async {
 In einigen Fällen will man in eine Datei schreiben oder aus einer Datei lesen. Zum Beispiel, wenn man Daten Appübergreifend nutzen will oder aus dem Internet Daten runterzuladen, um später darauf zuzugreifen.
 
 # Store key-value data on disk
+
+<ul>
+<li>Sind NoSQL Datenbankensysteme.
+<li>Daten werden im Prinzip wie eine HashTable/Dictionary gespeichert und geladen. 
+<li>Die Daten werden in einem großen Array gespeichert und mit einem Key identifiziert. 
+<li>Wenn wir uns die Daten wieder holen wollen, referenzieren wir einfach den entsprechend Key im Array. 
+</ul>
+
+Vorteile von Key-Value Datenbanken:
+<ul>
+<li> Effiziente Nutzung des Speichers, da die Daten in einer einfachen Datenstruktur hinterlegt sind.
+<li> Performanter Zugriff auf die Daten unabhängig von ihrere Größe, da ein Zugriff auf eine HashTables O(1) ist.
+</ul>
+
+Nachteile:
+<ul>
+<li> Der Zugriff erfolgt lediglich über den Key, sämtliche hinterlegte Daten werden beim Zugriff geholt.
+<li> Komplexere Datenstrukturen können hier zudem nur schwer modelliert werden.
+</ul>
+   
