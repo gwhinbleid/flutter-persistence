@@ -1,7 +1,7 @@
 # Persistenz in Flutter
-* SQLite
-* Read and Write files
-* Store key-value data on disk
+- SQLite
+- Read and Write files
+- Store key-value data on disk
 
 # SQLite
 Plugin für Flutter. Unterstützt iOS, Android und MacOS
@@ -20,8 +20,8 @@ Plugin für Flutter. Unterstützt iOS, Android und MacOS
 
 'sqflite' und path packages importieren, um mit der SQLite Datenbank zu arbeiten.
 
-* Das sqflite Paket stellt Klassen und Funktionen zur Verfügung, um mit der SQLite Datenbank zu interagieren
-* Die Pfadpakete stellen Funktionen zur Verfügung, um den Ort der Datenbank auf der Festplatte zu definieren
+- Das sqflite Paket stellt Klassen und Funktionen zur Verfügung, um mit der SQLite Datenbank zu interagieren
+- Die Pfadpakete stellen Funktionen zur Verfügung, um den Ort der Datenbank auf der Festplatte zu definieren
 
 
 ```js
@@ -68,8 +68,8 @@ class Anime {
 
 Um Daten aus der Datenbank zu lesen oder zu schreiben, muss vorher eine Verbindung zur Datenbank erstellt werden. Dies beinhaltet zwei Schritte:
 
-* Definieren des Pfades der Datenbank mit `getDatabasesPath()` in Kombination mit der `join` Funktion des path package.
-* Öffnen der Datenbank mit `openDatabase()` aus der sqflite Bibliothek.
+- Definieren des Pfades der Datenbank mit `getDatabasesPath()` in Kombination mit der `join` Funktion des path package.
+- Öffnen der Datenbank mit `openDatabase()` aus der sqflite Bibliothek.
 
 ```js
 // Avoid errors caused by flutter upgrade.
@@ -115,8 +115,8 @@ Die Datenbank ist nun vorbereitet und man kann jetzt Einträge schreiben und aus
 
 Einträge werden wie folgt eingefügt:
 
-* Anime in eine Map konvertieren
-* insert() Methode aufrufen, um die Map in die Tabelle hinzuzufügen
+- Anime in eine Map konvertieren
+- insert() Methode aufrufen, um die Map in die Tabelle hinzuzufügen
 
 
 ```js
@@ -178,8 +178,8 @@ await insertAnime(pokemon);
 
 Nachdem die Datenbank befüllt ist, kann man nach einem spezifischen Anime-Eintrag oder eine Liste ausgeben lassen.
 
-* Query über die Anime Tabelle gibt eine List<Map> zurück
-* Die List<Map> in eine List<Anime> konvertieren
+- Query über die Anime Tabelle gibt eine List<Map> zurück
+- Die List<Map> in eine List<Anime> konvertieren
 
 ```js
 // A method that retrieves all the animes from the animes table.
@@ -208,8 +208,8 @@ print(await animes()); // Prints a list that include Pokémon.
 
 Bestehende Einträge in der Datenbank kann man mittels der `update()` Methode aktualisieren.
 
-* Anime in eine Map konvertieren
-* `Where` benutzen, um den richtigen Eintrag zu aktualisieren
+- Anime in eine Map konvertieren
+- `Where` benutzen, um den richtigen Eintrag zu aktualisieren
 
 ```js
 Future<void> updateAnime(Anime anime) async {
