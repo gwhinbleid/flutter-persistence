@@ -1,6 +1,9 @@
-# Persistenz mit SQLite in Flutter
+# Persistenz in Flutter
+* SQLite
+* Read and Write files
+* Store key-value data on disk
 
-## SQLite
+# SQLite
 Plugin für Flutter. Unterstützt iOS, Android und MacOS
 
 ## Schritte
@@ -13,7 +16,7 @@ Plugin für Flutter. Unterstützt iOS, Android und MacOS
 7) Eintrag aktualisieren
 8) Eintrag löschen
 
-# Dependencies hinzufügen
+## Dependencies hinzufügen
 
 'sqflite' und path packages importieren, um mit der SQLite Datenbank zu arbeiten.
 
@@ -37,7 +40,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 ```
 
-# Datenmodell definieren
+## Datenmodell definieren
 
 Bevor eine Tabelle erstellt wird, muss das Datenmodell erst definiert werden. Als Beispiel werden folgende Daten werden definiert:
 
@@ -61,7 +64,7 @@ class Anime {
 }
 ```
 
-# Datenbank öffnen
+## Datenbank öffnen
 
 Um Daten aus der Datenbank zu lesen oder zu schreiben, muss vorher eine Verbindung zur Datenbank erstellt werden. Dies beinhaltet zwei Schritte:
 
@@ -81,7 +84,7 @@ final database = openDatabase(
 );
 ```
 
-# Tabelle erstellen
+## Tabelle erstellen
 
 Als Beispiel wird eine Tabelle mit verschiedenen Animes erstellt. Die Tabelle nutzt das vorher definierte Datenmodell `Anime`, welches aus einer `id`, einem `name` sowie einem `rating` besteht. Diese werden als drei Spalten der Animetabelle repräsentiert.
 
@@ -106,7 +109,7 @@ final database = openDatabase(
     );
 ```
 
-# Eintrag in die Datenbank einfügen
+## Eintrag in die Datenbank einfügen
 
 Die Datenbank ist nun vorbereitet und man kann jetzt Einträge schreiben und auslesen.
 
@@ -171,7 +174,7 @@ var pokemon = const Anime(
 
 await insertAnime(pokemon);
 ```
-# Einträge auslesen
+## Einträge auslesen
 
 Nachdem die Datenbank befüllt ist, kann man nach einem spezifischen Anime-Eintrag oder eine Liste ausgeben lassen.
 
@@ -201,7 +204,7 @@ Future<List<Anime>> animes() async {
 print(await animes()); // Prints a list that include Pokémon.
 ```
 
-# Eintrag aktualisieren
+## Eintrag aktualisieren
 
 Bestehende Einträge in der Datenbank kann man mittels der `update()` Methode aktualisieren.
 
@@ -236,7 +239,7 @@ await updateAnime(pokemon);
 print(await animes()); // Prints Anime with rating 5.
 ```
 
-# Einträge löschen
+## Einträge löschen
 
 Um einen Eintrag zu löschen, nutzt man die Methode `delete()`.
 Mittels `where` spezifizieren wir den Eintrag, den wir letztendlich löschen wollen.
@@ -256,3 +259,9 @@ Future<void> deleteAnime(int id) async {
   );
 }
 ```
+
+# Read and Write files
+
+In einigen Fällen will man in eine Datei schreiben oder aus einer Datei lesen. Zum Beispiel, wenn man Daten Appübergreifend nutzen will oder aus dem Internet Daten runterzuladen, um später darauf zuzugreifen.
+
+# Store key-value data on disk
