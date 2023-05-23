@@ -341,3 +341,46 @@ Future<int> readCounter() async {
 }
 ```
 # Store key-value data on disk
+
+<ul>
+<li>Sind NoSQL Datenbankensysteme.
+<li>Daten werden im Prinzip wie eine HashTable/Dictionary gespeichert und geladen. 
+<li>Die Daten werden in einem großen Array gespeichert und mit einem Key identifiziert. 
+<li>Wenn wir uns die Daten wieder holen wollen, referenzieren wir einfach den entsprechend Key im Array. 
+</ul>
+
+## Vorteile von Key-Value Datenbanken:
+<ul>
+<li> Effiziente Nutzung des Speichers, da die Daten in einer einfachen Datenstruktur hinterlegt sind.
+<li> Performanter Zugriff auf die Daten unabhängig von ihrere Größe, da ein Zugriff auf eine HashTables O(1) ist.
+</ul>
+
+## Nachteile:
+<ul>
+<li> Nur primitive Datentypen können für die Speicherung verwendet werden (boolean, string, integer, etc.)
+<li> Sie sind nicht dafür gedacht, große Datenmenge zu speichern.
+</ul>
+
+## Daten speichern
+```js
+// obtain shared preferences
+final prefs = await SharedPreferences.getInstance();
+
+// set value
+await prefs.setInt('counter', counter);
+```
+
+## Daten lesen
+```js
+final prefs = await SharedPreferences.getInstance();
+
+// Try reading data from the counter key. If it doesn't exist, return 0.
+final counter = prefs.getInt('counter') ?? 0;
+```
+
+## Daten löschen
+```js
+final prefs = await SharedPreferences.getInstance();
+
+await prefs.remove('counter');
+```
