@@ -264,4 +264,80 @@ Future<void> deleteAnime(int id) async {
 
 In einigen Fällen will man in eine Datei schreiben oder aus einer Datei lesen. Zum Beispiel, wenn man Daten Appübergreifend nutzen will oder aus dem Internet Daten runterzuladen, um später darauf zuzugreifen.
 
+Um die Dateien abzuspeichern, benötigt man das 'path_provider' Plugin und die dart:io Bibliothek.
+
+## Schritte
+
+1) Korrekten lokalen Pfad finden
+2) Eine Referenz auf den Dateipfad erstellen
+3) Daten in die Datei schreiben
+4) Daten aus der Datei lesen
+
+## Korrekten lokalen Pfad finden
+
+Der 'path_provider' Paket stellt Funktionen zur Verfügung, um Zugriff auf übliche Locations des Geräte Dateisystems zu erhalten.
+
+Das Plugin unterstützt aktuell Zugriff auf folgende Dateisystem Location:
+- Temporäres Verzeichnis
+  - Ein temporäres Verzeichnis (Cache), welches das System jederzeit leeren/löschen kann.
+    - iOS: 'NSCachesDirectory'
+    - Android: getCacheDir()
+- Dokumentenverzeichnis
+  - Ein Verzeichnis für die App um Dateien abzuspeichern, welches nur die App Zugriff hat. Das System leert das Verzeichnis sobald die App gelöscht wird.
+    - iOS: 'NSDocumentDirectory'
+    - Android: AppData directory
+
+```js
+Future<String> get _localPath async {
+  final directory = await getApplicationDocumentsDirectory();
+
+  return directory.path;
+}
+```
+
+## Eine Referenz auf den Dateipfad erstellen
+
+Sobald man weiß, wo die Datei abgespeichert wird, kann man eine Referenz zur Location der Datei erstellen.
+
+Hierbei nutzt man die File class der dart:io Bibliothek.
+
+```js
+Future<File> get _localFile async {
+  final path = await _localPath;
+  return File('$path/counter.txt');
+}
+```
+
+## Daten in die Datei schreiben
+
+Nachdem man eine Datei zum Bearbeiten hat, kann man diese zum Lesen und Schreiben von Daten nutzen. In diesem Beispiel schreiben wir einen Zähler mit '$counter' in die Datei.
+
+```js
+Future<File> writeCounter(int counter) async {
+  final file = await _localFile;
+
+  // Write the file
+  return file.writeAsString('$counter');
+}
+```
+
+## Daten aus der Datei lesen
+
+Mit Hilfe der File Klasse kann man die Datei auslesen.
+
+```js
+Future<int> readCounter() async {
+  try {
+    final file = await _localFile;
+
+    // Read the file
+    final contents = await file.readAsString();
+
+    return int.parse(contents);
+  } catch (e) {
+    // If encountering an error, return 0
+    return 0;
+  }
+}
+```
 # Store key-value data on disk
