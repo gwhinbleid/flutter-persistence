@@ -35,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    openDatabase().then((db) {
+    initDB().then((db) {
       database = db;
       fetchDogs();
     });
