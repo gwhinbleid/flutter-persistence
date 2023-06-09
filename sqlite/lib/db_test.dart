@@ -64,64 +64,64 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Future<void> fetchDogs() async {
+
+  Future<void> deleteDog(int id) async {
+    final db = await database;
+
+    await db.delete(
+      'dogs',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Dog>> fetchDogs() async {
     final List<Map<String, dynamic>> maps = await database.query('dogs');
-    setState(() {
-      dogList = List.generate(maps.length, (i) {
-        return Dog(
-          id: maps[i]['id'],
-          name: maps[i]['name'],
-          age: maps[i]['age'],
-        );
-      });
+    return List.generate(maps.length, (i) {
+      return Dog(
+        id: maps[i]['id'],
+        name: maps[i]['name'],
+        age: maps[i]['age'],
+      );
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Doggie Database'),
+        title: Text('Dog List'),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(labelText: 'Name'),
-            ),
-            TextField(
-              controller: ageController,
-              decoration: InputDecoration(labelText: 'Age'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final name = nameController.text;
-                final age = int.tryParse(ageController.text) ?? 0;
-                final dog = Dog(id: lastID++, name: name, age: age);
-                insertDog(dog).then((_) {
-                  fetchDogs();
-                  nameController.clear();
-                  ageController.clear();
-                });
+      body: FutureBuilder<List<Dog>>(
+        future: fetchDogs(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            final dogList = snapshot.data!;
+            return ListView.builder(
+              itemCount: dogList.length,
+              itemBuilder: (context, index) {
+                final dog = dogList[index];
+                return ListTile(
+                  title: Text(dog.name),
+                  subtitle: Text('Age: ${dog.age}'),
+                  trailing: ElevatedButton(
+                    onPressed: () {
+                      deleteDog(dog.id);
+                    },
+                    child: Icon(Icons.delete),
+                  ),
+                );
               },
-              child: Text('Add Dog'),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: dogList.length,
-                itemBuilder: (context, index) {
-                  final dog = dogList[index];
-                  return ListTile(
-                    title: Text(dog.name),
-                    subtitle: Text('Age: ${dog.age}'),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+            );
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
       ),
     );
   }
