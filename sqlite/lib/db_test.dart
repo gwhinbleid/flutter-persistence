@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-void main() => runApp(MyApp());
-
 int lastID = 0;
 
-class MyApp extends StatelessWidget {
+class SQLite extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -36,8 +34,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     initDB().then((db) {
-      database = db;
-      fetchDogs();
+      setState(() {
+        database = db;
+        fetchDogs();
+      });
     });
   }
 
@@ -53,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // Set the version. This executes the onCreate function and provides a
       // path to perform database upgrades and downgrades.
       version: 1,
-  );
+    );
   }
 
   Future<void> insertDog(Dog dog) async {
@@ -67,12 +67,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> deleteDog(int id) async {
     final db = await database;
-
     await db.delete(
       'dogs',
       where: 'id = ?',
       whereArgs: [id],
     );
+    //fetchDogs(); // Fetch the updated list after deleting the dog
   }
 
   Future<List<Dog>> fetchDogs() async {
@@ -86,6 +86,16 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future<void> updateDog(Dog dog) async {
+    final db = await database;
+    await db.update(
+      'dogs',
+      dog.toMap(),
+      where: 'id = ?',
+      whereArgs: [dog.id],
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -93,41 +103,149 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text('Dog List'),
       ),
-      body: FutureBuilder<List<Dog>>(
-        future: fetchDogs(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final dogList = snapshot.data!;
-            return ListView.builder(
-              itemCount: dogList.length,
-              itemBuilder: (context, index) {
-                final dog = dogList[index];
-                return ListTile(
-                  title: Text(dog.name),
-                  subtitle: Text('Age: ${dog.age}'),
-                  trailing: ElevatedButton(
-                    onPressed: () {
-                      deleteDog(dog.id);
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Dog Name',
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: ageController,
+              decoration: InputDecoration(
+                labelText: 'Dog Age',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final name = nameController.text;
+              final age = int.tryParse(ageController.text) ?? 0;
+              final dog = Dog(id: lastID++, name: name, age: age);
+              insertDog(dog).then((_) {
+                setState(() {
+                  nameController.clear();
+                  ageController.clear();
+                });
+              });
+            },
+            child: Text('Add Dog'),
+          ),
+          FutureBuilder<List<Dog>>(
+            future: fetchDogs(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final dogList = snapshot.data!;
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: dogList.length,
+                    itemBuilder: (context, index) {
+                      final dog = dogList[index];
+                      return ListTile(
+                        title: Text(dog.name),
+                        subtitle: Text('Age: ${dog.age}'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                deleteDog(dog.id).then((_) {
+                                  setState(() {
+                                    fetchDogs();
+                                  });
+                                });
+                              },
+                              child: Icon(Icons.delete),
+                            ),
+                            SizedBox(width: 8.0),
+                            ElevatedButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    final updatedNameController = TextEditingController(text: dog.name);
+                                    final updatedAgeController = TextEditingController(text: dog.age.toString());
+                                    return AlertDialog(
+                                      title: Text('Update Dog'),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          TextField(
+                                            controller: updatedNameController,
+                                            decoration: InputDecoration(
+                                              labelText: 'Dog Name',
+                                            ),
+                                          ),
+                                          TextField(
+                                            controller: updatedAgeController,
+                                            decoration: InputDecoration(
+                                              labelText: 'Dog Age',
+                                            ),
+                                            keyboardType: TextInputType.number,
+                                          ),
+                                        ],
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('Cancel'),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            final updatedName = updatedNameController.text;
+                                            final updatedAge = int.tryParse(updatedAgeController.text) ?? 0;
+                                            final updatedDog = Dog(
+                                              id: dog.id,
+                                              name: updatedName,
+                                              age: updatedAge,
+                                            );
+                                            updateDog(updatedDog).then((_) {
+                                              setState(() {
+                                                fetchDogs();
+                                              });
+                                              Navigator.of(context).pop();
+                                            });
+                                          },
+                                          child: Text('Update'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              child: Icon(Icons.edit),
+                            ),
+                          ],
+                        ),
+                      );
                     },
-                    child: Icon(Icons.delete),
                   ),
                 );
-              },
-            );
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        },
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 }
 
-class Dog {
+  class Dog {
   final int id;
   final String name;
   final int age;

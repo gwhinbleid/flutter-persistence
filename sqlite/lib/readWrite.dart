@@ -1,19 +1,23 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
-void main() {
-  runApp(
-    MaterialApp(
-      title: 'Reading and Writing Files',
-      home: FlutterDemo(storage: CounterStorage()),
-    ),
-  );
+class ReadWrite extends StatelessWidget {
+  ReadWrite({Key? key});
+
+  // This widget is the root of the application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Read Write demo',
+      home: FlutterDemo(title: 'Read Write demo', storage: FileStorage()),
+    );
+  }
 }
 
-class CounterStorage {
+class FileStorage {
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
 
@@ -22,60 +26,83 @@ class CounterStorage {
 
   Future<File> get _localFile async {
     final path = await _localPath;
-    return File('$path/counter.txt');
+    return File('$path/my_file.txt');
   }
 
-  Future<int> readCounter() async {
+  Future<String> readFile() async {
     try {
       final file = await _localFile;
-
-      // Read the file
-      final contents = await file.readAsString();
-
-      return int.parse(contents);
+      return await file.readAsString();
     } catch (e) {
-      // If encountering an error, return 0
-      return 0;
+      return '';
     }
   }
 
-  Future<File> writeCounter(int counter) async {
+  Future<File> writeFile(String content) async {
     final file = await _localFile;
+    return file.writeAsString(content);
+  }
 
-    // Write the file
-    return file.writeAsString('$counter');
+  Future<String?> openFile() async {
+    try {
+      final file = await _localFile;
+      final exists = await file.exists();
+      if (exists) {
+        return file.path;
+      }
+    } catch (e) {
+      print('Error opening file: $e');
+    }
+    return null;
   }
 }
 
 class FlutterDemo extends StatefulWidget {
-  const FlutterDemo({super.key, required this.storage});
+  FlutterDemo({Key? key, required this.title, required this.storage});
 
-  final CounterStorage storage;
+  final FileStorage storage;
+  final String title;
 
   @override
   State<FlutterDemo> createState() => _FlutterDemoState();
 }
 
 class _FlutterDemoState extends State<FlutterDemo> {
-  int _counter = 0;
+  final TextEditingController _textEditingController = TextEditingController();
+  late Future<String> _fileContentFuture;
 
   @override
   void initState() {
     super.initState();
-    widget.storage.readCounter().then((value) {
-      setState(() {
-        _counter = value;
-      });
-    });
+    _fileContentFuture = widget.storage.readFile();
   }
 
-  Future<File> _incrementCounter() {
+  Future<void> _saveFile() async {
+    final content = _textEditingController.text;
+    await widget.storage.writeFile(content);
+    _textEditingController.clear();
     setState(() {
-      _counter++;
+      _fileContentFuture = Future.value('');
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('File saved successfully!')),
+    );
+  }
 
-    // Write the variable as a string to the file.
-    return widget.storage.writeCounter(_counter);
+  Future<void> _openFile() async {
+    final filePath = await widget.storage.openFile();
+    if (filePath != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File opened successfully!')),
+      );
+      setState(() {
+        _fileContentFuture = Future.value(File(filePath).readAsStringSync());
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File does not exist!')),
+      );
+    }
   }
 
   @override
@@ -84,15 +111,47 @@ class _FlutterDemoState extends State<FlutterDemo> {
       appBar: AppBar(
         title: const Text('Reading and Writing Files'),
       ),
-      body: Center(
-        child: Text(
-          'Button tapped $_counter time${_counter == 1 ? '' : 's'}.',
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      body: FutureBuilder<String>(
+        future: _fileContentFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            final fileContent = snapshot.data ?? '';
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _textEditingController,
+                    maxLines: null,
+                    decoration: const InputDecoration(
+                      labelText: 'Enter text',
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: _saveFile,
+                        child: const Text('Save'),
+                      ),
+                      ElevatedButton(
+                        onPressed: _openFile,
+                        child: const Text('Open'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+                  if (fileContent.isNotEmpty) Text(fileContent),
+                ],
+              ),
+            );
+          }
+        },
       ),
     );
   }
