@@ -10,7 +10,7 @@ class SQLite extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Doggie Database',
+      title: 'Anime Database',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -26,9 +26,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late Database database;
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController ageController = TextEditingController();
-  List<Dog> dogList = [];
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController ratingController = TextEditingController();
+  List<Anime> animeList = [];
 
   @override
   void initState() {
@@ -36,18 +36,18 @@ class _MyHomePageState extends State<MyHomePage> {
     initDB().then((db) {
       setState(() {
         database = db;
-        fetchDogs();
+        fetchAnimes();
       });
     });
   }
 
   Future<Database> initDB() async {
     return openDatabase(
-      join(await getDatabasesPath(), 'doggie_database.db'),
+      join(await getDatabasesPath(), 'anime_database.db'),
       onCreate: (db, version) {
         // Run the CREATE TABLE statement on the database.
         return db.execute(
-          'CREATE TABLE dogs(id INTEGER PRIMARY KEY, name TEXT, age INTEGER)',
+          'CREATE TABLE animes(id INTEGER PRIMARY KEY, title TEXT, rating INTEGER)',
         );
       },
       // Set the version. This executes the onCreate function and provides a
@@ -56,43 +56,43 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Future<void> insertDog(Dog dog) async {
+  Future<void> insertAnime(Anime anime) async {
     await database.insert(
-      'dogs',
-      dog.toMap(),
+      'animes',
+      anime.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
 
-  Future<void> deleteDog(int id) async {
+  Future<void> deleteAnime(int id) async {
     final db = await database;
     await db.delete(
-      'dogs',
+      'animes',
       where: 'id = ?',
       whereArgs: [id],
     );
-    //fetchDogs(); // Fetch the updated list after deleting the dog
+    //fetchAnimes(); // Fetch the updated list after deleting the animes
   }
 
-  Future<List<Dog>> fetchDogs() async {
-    final List<Map<String, dynamic>> maps = await database.query('dogs');
+  Future<List<Anime>> fetchAnimes() async {
+    final List<Map<String, dynamic>> maps = await database.query('animes');
     return List.generate(maps.length, (i) {
-      return Dog(
+      return Anime(
         id: maps[i]['id'],
-        name: maps[i]['name'],
-        age: maps[i]['age'],
+        title: maps[i]['title'],
+        rating: maps[i]['rating'],
       );
     });
   }
 
-  Future<void> updateDog(Dog dog) async {
+  Future<void> updateAnime(Anime anime) async {
     final db = await database;
     await db.update(
-      'dogs',
-      dog.toMap(),
+      'animes',
+      anime.toMap(),
       where: 'id = ?',
-      whereArgs: [dog.id],
+      whereArgs: [anime.id],
     );
   }
 
@@ -101,64 +101,64 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dog List'),
+        title: Text('Anime List'),
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
-              controller: nameController,
+              controller: titleController,
               decoration: InputDecoration(
-                labelText: 'Dog Name',
+                labelText: 'Anime Title',
               ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
-              controller: ageController,
+              controller: ratingController,
               decoration: InputDecoration(
-                labelText: 'Dog Age',
+                labelText: 'Anime Rating',
               ),
               keyboardType: TextInputType.number,
             ),
           ),
           ElevatedButton(
             onPressed: () {
-              final name = nameController.text;
-              final age = int.tryParse(ageController.text) ?? 0;
-              final dog = Dog(id: lastID++, name: name, age: age);
-              insertDog(dog).then((_) {
+              final title = titleController.text;
+              final rating = int.tryParse(ratingController.text) ?? 0;
+              final anime = Anime(id: lastID++, title: title, rating: rating);
+              insertAnime(anime).then((_) {
                 setState(() {
-                  nameController.clear();
-                  ageController.clear();
+                  titleController.clear();
+                  ratingController.clear();
                 });
               });
             },
-            child: Text('Add Dog'),
+            child: Text('Add Anime'),
           ),
-          FutureBuilder<List<Dog>>(
-            future: fetchDogs(),
+          FutureBuilder<List<Anime>>(
+            future: fetchAnimes(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                final dogList = snapshot.data!;
+                final animeList = snapshot.data!;
                 return Expanded(
                   child: ListView.builder(
-                    itemCount: dogList.length,
+                    itemCount: animeList.length,
                     itemBuilder: (context, index) {
-                      final dog = dogList[index];
+                      final anime = animeList[index];
                       return ListTile(
-                        title: Text(dog.name),
-                        subtitle: Text('Age: ${dog.age}'),
+                        title: Text(anime.title),
+                        subtitle: Text('Rating: ${anime.rating}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             ElevatedButton(
                               onPressed: () {
-                                deleteDog(dog.id).then((_) {
+                                deleteAnime(anime.id).then((_) {
                                   setState(() {
-                                    fetchDogs();
+                                    fetchAnimes();
                                   });
                                 });
                               },
@@ -170,23 +170,23 @@ class _MyHomePageState extends State<MyHomePage> {
                                 showDialog(
                                   context: context,
                                   builder: (context) {
-                                    final updatedNameController = TextEditingController(text: dog.name);
-                                    final updatedAgeController = TextEditingController(text: dog.age.toString());
+                                    final updatedTitleController = TextEditingController(text: anime.title);
+                                    final updatedRatingController = TextEditingController(text: anime.rating.toString());
                                     return AlertDialog(
-                                      title: Text('Update Dog'),
+                                      title: Text('Update Anime'),
                                       content: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           TextField(
-                                            controller: updatedNameController,
+                                            controller: updatedTitleController,
                                             decoration: InputDecoration(
-                                              labelText: 'Dog Name',
+                                              labelText: 'Anime Title',
                                             ),
                                           ),
                                           TextField(
-                                            controller: updatedAgeController,
+                                            controller: updatedRatingController,
                                             decoration: InputDecoration(
-                                              labelText: 'Dog Age',
+                                              labelText: 'Anime Rating',
                                             ),
                                             keyboardType: TextInputType.number,
                                           ),
@@ -201,16 +201,16 @@ class _MyHomePageState extends State<MyHomePage> {
                                         ),
                                         ElevatedButton(
                                           onPressed: () {
-                                            final updatedName = updatedNameController.text;
-                                            final updatedAge = int.tryParse(updatedAgeController.text) ?? 0;
-                                            final updatedDog = Dog(
-                                              id: dog.id,
-                                              name: updatedName,
-                                              age: updatedAge,
+                                            final updatedTitle = updatedTitleController.text;
+                                            final updatedRating = int.tryParse(updatedRatingController.text) ?? 0;
+                                            final updatedAnime = Anime(
+                                              id: anime.id,
+                                              title: updatedTitle,
+                                              rating: updatedRating,
                                             );
-                                            updateDog(updatedDog).then((_) {
+                                            updateAnime(updatedAnime).then((_) {
                                               setState(() {
-                                                fetchDogs();
+                                                fetchAnimes();
                                               });
                                               Navigator.of(context).pop();
                                             });
@@ -245,29 +245,29 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-  class Dog {
+  class Anime {
   final int id;
-  final String name;
-  final int age;
+  final String title;
+  final int rating;
 
-  const Dog({
+  const Anime({
     required this.id,
-    required this.name,
-    required this.age,
+    required this.title,
+    required this.rating,
   });
 
-  // Convert a Dog into a Map. The keys must correspond to the names of the
+  // Convert an Anime into a Map. The keys must correspond to the titles of the
   // columns in the database.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'name': name,
-      'age': age,
+      'title': title,
+      'rating': rating,
     };
   }
 
   @override
   String toString() {
-    return 'Dog{id: $id, name: $name, age: $age}';
+    return 'Anime{id: $id, title: $title, rating: $rating}';
   }
 }
